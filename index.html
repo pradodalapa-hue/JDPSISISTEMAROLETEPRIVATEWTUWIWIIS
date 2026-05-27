@@ -3,9 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HELENA Core - Validação de Pedido JDP</title>
+    <title>HELENA Core - Roleta de Elite JDP</title>
     
-    <!-- SDKs de Engenharia -->
+    <!-- Bloqueio de Origem JDP -->
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('origem') !== 'whatsapp') {
+            document.write(`
+                <div style="background:#000; height:100vh; display:flex; align-items:center; justify-content:center;">
+                    <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779707901946_1776103715509.png" style="max-width:100%;">
+                </div>
+            `);
+            window.stop();
+        }
+    </script>
+
+    <!-- SDKs de Conexão -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,6 +29,7 @@
             --cyan: #06b6d4;
             --gold: #fde047;
             --slate-950: #020617;
+            --jdp-gold: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
         }
 
         body {
@@ -26,11 +40,8 @@
             height: 100vh;
         }
 
-        .terminal-text {
-            font-family: 'Orbitron', sans-serif;
-            text-shadow: 0 0 10px var(--cyan);
-        }
-
+        .terminal-text { font-family: 'Orbitron', sans-serif; }
+        
         .main-engine {
             background: radial-gradient(circle at center, rgba(6, 182, 212, 0.1) 0%, transparent 70%),
                         url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779792501564_1778967155044.png');
@@ -43,19 +54,17 @@
             justify-content: center;
         }
 
-        /* Roleta Visual */
         .wheel-container {
             position: relative;
-            width: 330px;
-            height: 330px;
+            width: 320px;
+            height: 320px;
             border: 6px solid #1e293b;
             border-radius: 50%;
-            box-shadow: 0 0 40px rgba(6, 182, 212, 0.2);
+            box-shadow: 0 0 50px rgba(6, 182, 212, 0.2);
         }
 
         .wheel-spinner {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             border-radius: 50%;
             background-image: url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779787837676_1001186385.png');
             background-size: cover;
@@ -63,120 +72,88 @@
         }
 
         .pointer {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 20;
-            filter: drop-shadow(0 0 5px var(--cyan));
+            position: absolute; top: -15px; left: 50%;
+            transform: translateX(-50%); z-index: 20;
+            filter: drop-shadow(0 0 8px var(--cyan));
         }
 
         .center-button {
-            position: absolute;
-            top: 50%;
-            left: 50%;
+            position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 75px;
-            height: 75px;
-            background: var(--slate-950);
+            width: 70px; height: 70px;
+            background: #000;
             border: 3px solid var(--gold);
-            border-radius: 50%;
-            z-index: 30;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: var(--gold);
-            transition: all 0.3s;
+            border-radius: 50%; z-index: 30;
+            cursor: pointer; color: var(--gold);
+            font-weight: bold; font-size: 10px;
         }
 
-        .center-button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            border-color: #475569;
-            color: #475569;
-        }
-
-        /* Status Scanner */
-        .scanner-bar {
-            width: 250px;
-            height: 4px;
-            background: var(--cyan);
-            box-shadow: 0 0 15px var(--cyan);
-            margin-top: 10px;
-            border-radius: 2px;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
+        .center-button:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
 
         #modal-result {
-            display: none;
-            backdrop-filter: blur(15px);
-            background: rgba(2, 6, 23, 0.9);
+            display: none; position: fixed; inset: 0; z-index: 100;
+            backdrop-filter: blur(15px); background: rgba(2, 6, 23, 0.9);
+            align-items: center; justify-content: center;
+        }
+
+        .prize-card {
+            background: #0f172a; border: 2px solid var(--cyan);
+            padding: 30px; border-radius: 24px; text-align: center;
+            max-width: 300px; box-shadow: 0 0 40px var(--cyan);
+        }
+
+        .status-tag {
+            padding: 5px 15px; border-radius: 50px; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 1px;
+            border: 1px solid #334155; margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
     <div class="main-engine">
-        <!-- Cabeçalho de Identidade -->
-        <div class="absolute top-8 text-center w-full px-4">
-            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789267039_1001186393.png" class="w-32 mx-auto mb-3">
-            <h1 class="terminal-text text-cyan-400 text-xs tracking-[0.3em] uppercase">Helena Security - Validador JDP</h1>
-            <div id="status-box" class="mt-4 inline-block px-4 py-2 border border-slate-700 bg-slate-900/50 rounded text-[10px] uppercase tracking-widest">
-                <span id="status-icon" class="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-2"></span>
-                <span id="status-display">Iniciando Varredura...</span>
-            </div>
-            <div id="scanner" class="scanner-bar mx-auto"></div>
+        <!-- Cabeçalho Industrial -->
+        <div class="absolute top-10 text-center">
+            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789267039_1001186393.png" class="w-32 mx-auto mb-2">
+            <h1 class="terminal-text text-cyan-400 text-[10px] tracking-[0.4em]">HELENA CORE v3.1</h1>
+            <div id="status-display" class="status-tag">Sincronizando...</div>
         </div>
 
         <!-- Roleta -->
         <div class="wheel-container">
-            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789433798_Engenheiro_Transparente__6_.png" class="pointer w-14">
+            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789433798_Engenheiro_Transparente__6_.png" class="pointer w-12">
             <div id="roleta" class="wheel-spinner"></div>
-            <button id="btn-girar" onclick="iniciarSorteio()" class="center-button terminal-text text-[10px]" disabled>GIRAR</button>
+            <button id="btn-girar" onclick="processarSorteio()" class="center-button terminal-text" disabled>GIRAR</button>
         </div>
 
-        <!-- Footer -->
-        <div class="absolute bottom-6 text-[9px] text-slate-500 terminal-text tracking-widest">
-            ID ATUAL: <span id="id-display" class="text-cyan-700">NENHUM</span>
+        <div class="absolute bottom-8 text-[9px] text-slate-600 terminal-text">
+            SISTEMA DE SEGURANÇA JOSÉ DIVINO PRADO DA LAPA
         </div>
     </div>
 
     <!-- Modal de Resultado -->
-    <div id="modal-result" class="fixed inset-0 z-50 flex items-center justify-center p-6">
-        <div class="bg-slate-900 border-2 border-cyan-500 rounded-3xl p-8 text-center max-w-xs shadow-[0_0_50px_rgba(6,182,212,0.4)]">
-            <h2 class="terminal-text text-gold-400 text-xl mb-4 text-[#fde047]">SISTEMA JDP: GANHOU!</h2>
-            <img id="img-premio" src="" class="w-44 h-44 mx-auto mb-4 rounded-xl border border-cyan-900">
-            <p id="prize-name" class="text-cyan-400 font-bold text-lg mb-6 uppercase tracking-tighter">---</p>
-            <button onclick="confirmarResgate()" class="w-full bg-cyan-600 text-slate-950 font-black py-3 rounded-lg terminal-text text-sm hover:bg-cyan-400 transition-all">
-                RESGATAR PRÊMIO
+    <div id="modal-result">
+        <div class="prize-card">
+            <h2 class="terminal-text text-gold-400 text-lg mb-4" style="color:#fde047">SISTEMA: PREMIADO!</h2>
+            <img id="img-premio" src="" class="w-40 h-40 mx-auto mb-4 rounded-lg border border-cyan-500/30">
+            <p id="prize-name" class="text-cyan-400 font-bold mb-6 tracking-widest uppercase">---</p>
+            <button onclick="resgatar()" class="w-full py-3 rounded-lg font-bold text-slate-950 terminal-text text-xs" style="background: var(--jdp-gold)">
+                CONFIRMAR RESGATE
             </button>
         </div>
     </div>
 
     <script>
-        // Configuração de Engenharia JDP
-        const firebaseConfig = {
-            apiKey: "AIzaSyCEdXF7ScnMYz0Ce0OW-B_UJ8Bm5Pl9m8o",
-            databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com"
-        };
-        firebase.initializeApp(firebaseConfig);
+        // CONFIGURAÇÃO FIREBASE (ESPELHADA DO RASTREIO)
+        const firebaseConfig = { databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
-        // Extração do ID da URL
-        const urlParams = new URLSearchParams(window.location.search);
+        
+        const LOJA_ID = "DONY_BURGER45";
         const pedidoID = urlParams.get('pedido');
         
         const btnGirar = document.getElementById('btn-girar');
         const statusDisplay = document.getElementById('status-display');
-        const statusIcon = document.getElementById('status-icon');
-        const idDisplay = document.getElementById('id-display');
 
         const premios = [
             { nome: "X-SALADA", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843123607_1779137773417.png" },
@@ -187,74 +164,69 @@
             { nome: "PIX", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779842647931_1001187967.jpg" }
         ];
 
-        let premioSorteado = null;
+        let sorteio = null;
 
-        // "NASCE SABENDO": Execução imediata ao carregar
+        // "NASCE SABENDO": Validação Imediata
         window.onload = () => {
-            if(!pedidoID) {
-                atualizarStatus("ERRO: ID AUSENTE", "bg-red-600");
-                idDisplay.innerText = "NENHUM";
+            if (!pedidoID) {
+                statusDisplay.innerText = "ID NÃO DETECTADO";
+                statusDisplay.style.color = "#ef4444";
                 return;
             }
-
-            idDisplay.innerText = pedidoID;
-            validarAcesso();
+            validarID();
         };
 
-        function validarAcesso() {
-            db.ref('pedidos/' + pedidoID).once('value', snap => {
+        async function validarID() {
+            try {
+                // CONSULTA O CAMINHO EXATO DO RASTREIO JDP
+                const snap = await db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${pedidoID}`).once('value');
                 const data = snap.val();
 
-                if(!data) {
-                    atualizarStatus("ID INVÁLIDO NO DB", "bg-red-600");
-                } else if(data.giro_usado === true) {
-                    atualizarStatus("PEDIDO JÁ UTILIZADO", "bg-red-600");
+                if (!snap.exists()) {
+                    statusDisplay.innerText = "ID INVÁLIDO NO BANCO";
+                    statusDisplay.style.color = "#ef4444";
+                } else if (data.giro_usado === true) {
+                    statusDisplay.innerText = "GIRO JÁ UTILIZADO";
+                    statusDisplay.style.color = "#ef4444";
                     btnGirar.disabled = true;
                 } else {
-                    atualizarStatus("ACESSO LIBERADO", "bg-green-500");
+                    statusDisplay.innerText = "ACESSO AUTORIZADO";
+                    statusDisplay.style.color = "#22c55e";
                     btnGirar.disabled = false;
                 }
-            });
+            } catch (e) {
+                statusDisplay.innerText = "ERRO DE CONEXÃO";
+            }
         }
 
-        function atualizarStatus(msg, colorClass) {
-            statusDisplay.innerText = msg;
-            statusIcon.className = `inline-block w-2 h-2 rounded-full mr-2 ${colorClass}`;
-            if(colorClass === "bg-red-600") document.getElementById('scanner').style.background = "#dc2626";
-        }
-
-        function iniciarSorteio() {
+        function processarSorteio() {
             btnGirar.disabled = true;
-            atualizarStatus("SORTEANDO...", "bg-cyan-500");
-
-            // Segurança: Marca como "em uso" no Firebase
-            db.ref('pedidos/' + pedidoID).update({ girando: true });
-
+            statusDisplay.innerText = "SORTEANDO...";
+            
             const index = Math.floor(Math.random() * 6);
-            premioSorteado = premios[index];
+            sorteio = premios[index];
 
-            const rotacaoFinal = (360 * 10) + (index * 60);
-            document.getElementById('roleta').style.transform = `rotate(${rotacaoFinal}deg)`;
+            const rotation = (360 * 8) + (index * 60);
+            document.getElementById('roleta').style.transform = `rotate(${rotation}deg)`;
 
             setTimeout(() => {
-                document.getElementById('img-premio').src = premioSorteado.img;
-                document.getElementById('prize-name').innerText = premioSorteado.nome;
+                document.getElementById('img-premio').src = sorteio.img;
+                document.getElementById('prize-name').innerText = sorteio.nome;
                 document.getElementById('modal-result').style.display = 'flex';
             }, 4100);
         }
 
-        function confirmarResgate() {
-            // Imutabilidade JDP: Trava definitiva
-            db.ref('pedidos/' + pedidoID).update({
+        async function resgatar() {
+            // GRAVAÇÃO DE IMUTABILIDADE NO CAMINHO DO RASTREIO
+            await db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${pedidoID}`).update({
                 giro_usado: true,
-                girando: false,
-                premio: premioSorteado.nome,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                alert("Prêmio registrado com sucesso!");
-                window.location.reload(); // Recarrega para mostrar o bloqueio
+                premio_roleta: sorteio.nome,
+                data_giro: firebase.database.ServerValue.TIMESTAMP
             });
+            
+            alert("Resgate processado! O sistema será bloqueado para este ID.");
+            window.location.reload();
         }
     </script>
 </body>
-        </html>
+</html>
