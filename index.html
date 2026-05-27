@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HELENA Core - Engenharia de Elite JDP</title>
+    <title>HELENA Core - Validação de Pedido JDP</title>
     
-    <!-- SDKs de Conexão -->
+    <!-- SDKs de Engenharia -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,9 +31,8 @@
             text-shadow: 0 0 10px var(--cyan);
         }
 
-        /* Container Principal com Background Industrial */
         .main-engine {
-            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.15) 0%, transparent 70%),
+            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.1) 0%, transparent 70%),
                         url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779792501564_1778967155044.png');
             background-size: cover;
             background-position: center;
@@ -44,14 +43,14 @@
             justify-content: center;
         }
 
-        /* Estilização da Roleta */
+        /* Roleta Visual */
         .wheel-container {
             position: relative;
-            width: 350px;
-            height: 350px;
-            border: 8px solid #1e293b;
+            width: 330px;
+            height: 330px;
+            border: 6px solid #1e293b;
             border-radius: 50%;
-            box-shadow: 0 0 50px rgba(6, 182, 212, 0.3), inset 0 0 20px rgba(0,0,0,0.5);
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.2);
         }
 
         .wheel-spinner {
@@ -65,7 +64,7 @@
 
         .pointer {
             position: absolute;
-            top: -20px;
+            top: -15px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 20;
@@ -77,10 +76,10 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
+            width: 75px;
+            height: 75px;
             background: var(--slate-950);
-            border: 4px solid var(--gold);
+            border: 3px solid var(--gold);
             border-radius: 50%;
             z-index: 30;
             cursor: pointer;
@@ -92,188 +91,170 @@
             transition: all 0.3s;
         }
 
-        .center-button:hover {
-            box-shadow: 0 0 20px var(--gold);
-            scale: 1.05;
-        }
-
         .center-button:disabled {
-            opacity: 0.5;
+            opacity: 0.3;
             cursor: not-allowed;
-            filter: grayscale(1);
+            border-color: #475569;
+            color: #475569;
         }
 
-        /* Modal de Sucesso */
+        /* Status Scanner */
+        .scanner-bar {
+            width: 250px;
+            height: 4px;
+            background: var(--cyan);
+            box-shadow: 0 0 15px var(--cyan);
+            margin-top: 10px;
+            border-radius: 2px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
         #modal-result {
             display: none;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
             background: rgba(2, 6, 23, 0.9);
-        }
-
-        .prize-card {
-            background: linear-gradient(145deg, #0f172a, #020617);
-            border: 2px solid var(--cyan);
-            box-shadow: 0 0 30px var(--cyan);
-        }
-
-        .scanline {
-            width: 100%;
-            height: 2px;
-            background: var(--cyan);
-            position: absolute;
-            top: 0;
-            animation: scan 2s linear infinite;
-            opacity: 0.5;
-        }
-
-        @keyframes scan {
-            0% { top: 0; }
-            100% { top: 100%; }
         }
     </style>
 </head>
 <body>
 
     <div class="main-engine">
-        <!-- Header Técnico -->
-        <div class="absolute top-10 text-center">
-            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789267039_1001186393.png" class="w-40 mx-auto mb-2">
-            <h1 class="terminal-text text-cyan-400 text-sm tracking-widest">SISTEMA HELENA CORE v2.0</h1>
-            <p id="status-display" class="text-xs text-slate-400 mt-1">AGUARDANDO AUTENTICAÇÃO...</p>
+        <!-- Cabeçalho de Identidade -->
+        <div class="absolute top-8 text-center w-full px-4">
+            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789267039_1001186393.png" class="w-32 mx-auto mb-3">
+            <h1 class="terminal-text text-cyan-400 text-xs tracking-[0.3em] uppercase">Helena Security - Validador JDP</h1>
+            <div id="status-box" class="mt-4 inline-block px-4 py-2 border border-slate-700 bg-slate-900/50 rounded text-[10px] uppercase tracking-widest">
+                <span id="status-icon" class="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-2"></span>
+                <span id="status-display">Iniciando Varredura...</span>
+            </div>
+            <div id="scanner" class="scanner-bar mx-auto"></div>
         </div>
 
-        <!-- Roleta Principal -->
+        <!-- Roleta -->
         <div class="wheel-container">
-            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789433798_Engenheiro_Transparente__6_.png" class="pointer w-16">
+            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789433798_Engenheiro_Transparente__6_.png" class="pointer w-14">
             <div id="roleta" class="wheel-spinner"></div>
-            <button id="btn-girar" onclick="processarGiro()" class="center-button terminal-text text-xs">GIRAR</button>
+            <button id="btn-girar" onclick="iniciarSorteio()" class="center-button terminal-text text-[10px]" disabled>GIRAR</button>
         </div>
 
-        <!-- Barra de Status Inferior -->
-        <div class="absolute bottom-5 w-full px-10 flex justify-between text-[10px] text-cyan-700 uppercase terminal-text">
-            <span>Server: DONY_BURGER_DB</span>
-            <span>Security: JDP_ENCRYPT_ACTIVE</span>
-            <span>Auth: SR. JOSÉ DIVINO</span>
+        <!-- Footer -->
+        <div class="absolute bottom-6 text-[9px] text-slate-500 terminal-text tracking-widest">
+            ID ATUAL: <span id="id-display" class="text-cyan-700">NENHUM</span>
         </div>
     </div>
 
     <!-- Modal de Resultado -->
-    <div id="modal-result" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="prize-card relative w-full max-w-sm rounded-2xl p-8 text-center overflow-hidden">
-            <div class="scanline"></div>
-            <h2 class="terminal-text text-gold-400 text-2xl mb-4 text-[#fde047]">PRÊMIO IDENTIFICADO!</h2>
-            <div id="prize-container" class="mb-6 flex justify-center">
-                <img id="img-premio" src="" class="w-48 h-48 object-cover rounded-xl border-2 border-cyan-500/30">
-            </div>
-            <p id="prize-name" class="text-cyan-400 font-bold text-xl mb-6 tracking-tighter">---</p>
-            <button onclick="resgatarPremio()" class="w-full bg-cyan-600 hover:bg-cyan-400 text-slate-950 font-black py-3 rounded-lg transition-all terminal-text">
-                CONFIRMAR RESGATE
+    <div id="modal-result" class="fixed inset-0 z-50 flex items-center justify-center p-6">
+        <div class="bg-slate-900 border-2 border-cyan-500 rounded-3xl p-8 text-center max-w-xs shadow-[0_0_50px_rgba(6,182,212,0.4)]">
+            <h2 class="terminal-text text-gold-400 text-xl mb-4 text-[#fde047]">SISTEMA JDP: GANHOU!</h2>
+            <img id="img-premio" src="" class="w-44 h-44 mx-auto mb-4 rounded-xl border border-cyan-900">
+            <p id="prize-name" class="text-cyan-400 font-bold text-lg mb-6 uppercase tracking-tighter">---</p>
+            <button onclick="confirmarResgate()" class="w-full bg-cyan-600 text-slate-950 font-black py-3 rounded-lg terminal-text text-sm hover:bg-cyan-400 transition-all">
+                RESGATAR PRÊMIO
             </button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÕES DE ENGENHARIA JDP
+        // Configuração de Engenharia JDP
         const firebaseConfig = {
             apiKey: "AIzaSyCEdXF7ScnMYz0Ce0OW-B_UJ8Bm5Pl9m8o",
             databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        
-        const LOJA_ID = "DONY_BURGER45";
+
+        // Extração do ID da URL
         const urlParams = new URLSearchParams(window.location.search);
         const pedidoID = urlParams.get('pedido');
-
-        // MAPEAMENTO DOS SETORES (360 graus / 6 prêmios = 60 graus cada)
-        const premios = [
-            { id: 0, nome: "X-SALADA", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843123607_1779137773417.png", link: "x-salada" },
-            { id: 1, nome: "KIKÃO ESPECIAL", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843187147_1779137704141.png", link: "kikao" },
-            { id: 2, nome: "CUPOM 10% OFF", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png", link: "10-off" },
-            { id: 3, nome: "X-TUDO MONSTRO", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png", link: "xtudo" },
-            { id: 4, nome: "X-BACON TURBO", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png", link: "xbacon" },
-            { id: 5, nome: "PIX", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779842647931_1001187967.jpg", link: "pix" }
-        ];
-
-        let sorteioAtual = null;
+        
         const btnGirar = document.getElementById('btn-girar');
         const statusDisplay = document.getElementById('status-display');
+        const statusIcon = document.getElementById('status-icon');
+        const idDisplay = document.getElementById('id-display');
 
-        // Inicialização do Sistema
+        const premios = [
+            { nome: "X-SALADA", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843123607_1779137773417.png" },
+            { nome: "KIKÃO", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843187147_1779137704141.png" },
+            { nome: "10% OFF", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png" },
+            { nome: "X-TUDO", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png" },
+            { nome: "X-BACON", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png" },
+            { nome: "PIX", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779842647931_1001187967.jpg" }
+        ];
+
+        let premioSorteado = null;
+
+        // "NASCE SABENDO": Execução imediata ao carregar
         window.onload = () => {
             if(!pedidoID) {
-                statusDisplay.innerText = "ERRO: ID DE PEDIDO AUSENTE";
-                btnGirar.disabled = true;
+                atualizarStatus("ERRO: ID AUSENTE", "bg-red-600");
+                idDisplay.innerText = "NENHUM";
                 return;
             }
-            validarPedido();
+
+            idDisplay.innerText = pedidoID;
+            validarAcesso();
         };
 
-        function validarPedido() {
+        function validarAcesso() {
             db.ref('pedidos/' + pedidoID).once('value', snap => {
                 const data = snap.val();
+
                 if(!data) {
-                    statusDisplay.innerText = "ACESSO NEGADO: PEDIDO INEXISTENTE";
-                    btnGirar.disabled = true;
-                } else if(data.giro_usado) {
-                    statusDisplay.innerText = "ACESSO NEGADO: GIRO JÁ UTILIZADO";
+                    atualizarStatus("ID INVÁLIDO NO DB", "bg-red-600");
+                } else if(data.giro_usado === true) {
+                    atualizarStatus("PEDIDO JÁ UTILIZADO", "bg-red-600");
                     btnGirar.disabled = true;
                 } else {
-                    statusDisplay.innerText = "SISTEMA PRONTO: " + pedidoID;
-                    statusDisplay.classList.add('text-green-500');
+                    atualizarStatus("ACESSO LIBERADO", "bg-green-500");
+                    btnGirar.disabled = false;
                 }
             });
         }
 
-        function processarGiro() {
+        function atualizarStatus(msg, colorClass) {
+            statusDisplay.innerText = msg;
+            statusIcon.className = `inline-block w-2 h-2 rounded-full mr-2 ${colorClass}`;
+            if(colorClass === "bg-red-600") document.getElementById('scanner').style.background = "#dc2626";
+        }
+
+        function iniciarSorteio() {
             btnGirar.disabled = true;
-            statusDisplay.innerText = "PROCESSANDO SORTEIO...";
+            atualizarStatus("SORTEANDO...", "bg-cyan-500");
 
-            // Sorteia o índice (0 a 5)
-            const indiceSorteado = Math.floor(Math.random() * 6);
-            sorteioAtual = premios[indiceSorteado];
+            // Segurança: Marca como "em uso" no Firebase
+            db.ref('pedidos/' + pedidoID).update({ girando: true });
 
-            // Cálculo de Rotação (Mínimo 5 voltas completas + ângulo do prêmio)
-            // Cada fatia tem 60 graus. O centro da fatia 0 está em 0 graus.
-            const voltas = 5 * 360;
-            const anguloFatia = indiceSorteado * 60;
-            const rotacaoTotal = voltas + anguloFatia;
+            const index = Math.floor(Math.random() * 6);
+            premioSorteado = premios[index];
 
-            const roletaElement = document.getElementById('roleta');
-            roletaElement.style.transform = `rotate(${rotacaoTotal}deg)`;
+            const rotacaoFinal = (360 * 10) + (index * 60);
+            document.getElementById('roleta').style.transform = `rotate(${rotacaoFinal}deg)`;
 
             setTimeout(() => {
-                finalizarGiro();
+                document.getElementById('img-premio').src = premioSorteado.img;
+                document.getElementById('prize-name').innerText = premioSorteado.nome;
+                document.getElementById('modal-result').style.display = 'flex';
             }, 4100);
         }
 
-        function finalizarGiro() {
-            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-            
-            document.getElementById('img-premio').src = sorteioAtual.imagem;
-            document.getElementById('prize-name').innerText = sorteioAtual.nome;
-            document.getElementById('modal-result').style.display = 'flex';
-            statusDisplay.innerText = "SORTEIO CONCLUÍDO";
-        }
-
-        function resgatarPremio() {
-            // HELENA Logic: Transação de Segurança no Firebase
-            const updates = {};
-            updates['/pedidos/' + pedidoID + '/giro_usado'] = true;
-            updates['/pedidos/' + pedidoID + '/premio_ganho'] = sorteioAtual.nome;
-            updates['/pedidos/' + pedidoID + '/data_giro'] = new Date().toISOString();
-
-            db.ref().update(updates).then(() => {
-                statusDisplay.innerText = "RESGATE CONFIRMADO. REDIRECIONANDO...";
-                setTimeout(() => {
-                    // Redireciona para o link do prêmio ou comemoração
-                    window.location.href = sorteioAtual.link;
-                }, 1500);
-            }).catch(err => {
-                console.error("Erro HELENA Core:", err);
-                alert("Falha crítica na comunicação com o servidor.");
+        function confirmarResgate() {
+            // Imutabilidade JDP: Trava definitiva
+            db.ref('pedidos/' + pedidoID).update({
+                giro_usado: true,
+                girando: false,
+                premio: premioSorteado.nome,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                alert("Prêmio registrado com sucesso!");
+                window.location.reload(); // Recarrega para mostrar o bloqueio
             });
         }
     </script>
 </body>
-</html>
+        </html>
