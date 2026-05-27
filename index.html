@@ -3,153 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HELENA Core - Roleta de Elite JDP</title>
+    <title>HELENA Core - Roleta Industrial JDP</title>
     
-    <!-- Bloqueio de Origem JDP -->
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('origem') !== 'whatsapp') {
-            document.write(`
-                <div style="background:#000; height:100vh; display:flex; align-items:center; justify-content:center;">
-                    <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779707901946_1776103715509.png" style="max-width:100%;">
-                </div>
-            `);
-            window.stop();
-        }
-    </script>
-
-    <!-- SDKs de Conexão -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            --cyan: #06b6d4;
-            --gold: #fde047;
-            --slate-950: #020617;
-            --jdp-gold: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-        }
-
-        body {
-            background-color: var(--slate-950);
-            color: white;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        .terminal-text { font-family: 'Orbitron', sans-serif; }
+        :root { --cyan: #06b6d4; --gold: #fde047; --slate: #020617; }
+        body { background: var(--slate); color: white; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; }
+        .terminal-text { font-family: 'Orbitron', sans-serif; text-shadow: 0 0 10px var(--cyan); }
         
         .main-engine {
-            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.1) 0%, transparent 70%),
+            background: radial-gradient(circle at center, rgba(6,182,212,0.1) 0%, transparent 70%),
                         url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779792501564_1778967155044.png');
-            background-size: cover;
-            background-position: center;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background-size: cover; background-position: center; height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
         .wheel-container {
-            position: relative;
-            width: 320px;
-            height: 320px;
-            border: 6px solid #1e293b;
-            border-radius: 50%;
-            box-shadow: 0 0 50px rgba(6, 182, 212, 0.2);
+            position: relative; width: 340px; height: 340px;
+            border: 8px solid #1e293b; border-radius: 50%;
+            box-shadow: 0 0 50px rgba(6, 182, 212, 0.3);
         }
 
         .wheel-spinner {
-            width: 100%; height: 100%;
-            border-radius: 50%;
+            width: 100%; height: 100%; border-radius: 50%;
             background-image: url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779787837676_1001186385.png');
-            background-size: cover;
-            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
-        }
-
-        .pointer {
-            position: absolute; top: -15px; left: 50%;
-            transform: translateX(-50%); z-index: 20;
-            filter: drop-shadow(0 0 8px var(--cyan));
+            background-size: cover; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1);
         }
 
         .center-button {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70px; height: 70px;
-            background: #000;
-            border: 3px solid var(--gold);
-            border-radius: 50%; z-index: 30;
-            cursor: pointer; color: var(--gold);
-            font-weight: bold; font-size: 10px;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80px; height: 80px; background: #000; border: 4px solid var(--gold);
+            border-radius: 50%; z-index: 30; cursor: pointer; color: var(--gold); font-weight: bold;
         }
 
-        .center-button:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+        .center-button:disabled { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; }
 
         #modal-result {
-            display: none; position: fixed; inset: 0; z-index: 100;
-            backdrop-filter: blur(15px); background: rgba(2, 6, 23, 0.9);
+            display: none; position: fixed; inset: 0; z-index: 50;
+            backdrop-filter: blur(15px); background: rgba(2,6,23,0.9);
             align-items: center; justify-content: center;
-        }
-
-        .prize-card {
-            background: #0f172a; border: 2px solid var(--cyan);
-            padding: 30px; border-radius: 24px; text-align: center;
-            max-width: 300px; box-shadow: 0 0 40px var(--cyan);
-        }
-
-        .status-tag {
-            padding: 5px 15px; border-radius: 50px; font-size: 10px;
-            text-transform: uppercase; letter-spacing: 1px;
-            border: 1px solid #334155; margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
     <div class="main-engine">
-        <!-- Cabeçalho Industrial -->
         <div class="absolute top-10 text-center">
             <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789267039_1001186393.png" class="w-32 mx-auto mb-2">
-            <h1 class="terminal-text text-cyan-400 text-[10px] tracking-[0.4em]">HELENA CORE v3.1</h1>
-            <div id="status-display" class="status-tag">Sincronizando...</div>
+            <h1 class="terminal-text text-cyan-400 text-[10px] tracking-[0.4em]">HELENA CORE v3.5</h1>
+            <p id="status-display" class="text-[10px] mt-2 uppercase tracking-widest text-yellow-500">Autenticando...</p>
         </div>
 
-        <!-- Roleta -->
         <div class="wheel-container">
-            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789433798_Engenheiro_Transparente__6_.png" class="pointer w-12">
+            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789433798_Engenheiro_Transparente__6_.png" class="absolute top-[-20px] left-1/2 -translate-x-1/2 w-16 z-20">
             <div id="roleta" class="wheel-spinner"></div>
-            <button id="btn-girar" onclick="processarSorteio()" class="center-button terminal-text" disabled>GIRAR</button>
-        </div>
-
-        <div class="absolute bottom-8 text-[9px] text-slate-600 terminal-text">
-            SISTEMA DE SEGURANÇA JOSÉ DIVINO PRADO DA LAPA
+            <button id="btn-girar" onclick="iniciarGiro()" class="center-button terminal-text text-[10px]" disabled>GIRAR</button>
         </div>
     </div>
 
-    <!-- Modal de Resultado -->
     <div id="modal-result">
-        <div class="prize-card">
-            <h2 class="terminal-text text-gold-400 text-lg mb-4" style="color:#fde047">SISTEMA: PREMIADO!</h2>
-            <img id="img-premio" src="" class="w-40 h-40 mx-auto mb-4 rounded-lg border border-cyan-500/30">
-            <p id="prize-name" class="text-cyan-400 font-bold mb-6 tracking-widest uppercase">---</p>
-            <button onclick="resgatar()" class="w-full py-3 rounded-lg font-bold text-slate-950 terminal-text text-xs" style="background: var(--jdp-gold)">
-                CONFIRMAR RESGATE
-            </button>
+        <div class="bg-slate-900 border-2 border-cyan-500 p-8 rounded-3xl text-center max-w-xs">
+            <h2 class="terminal-text text-yellow-400 text-xl mb-4">SISTEMA: GANHOU!</h2>
+            <img id="img-premio" src="" class="w-40 h-40 mx-auto mb-4 rounded-xl border border-cyan-800">
+            <p id="prize-name" class="text-cyan-400 font-bold text-lg mb-6 uppercase">---</p>
+            <button onclick="confirmarResgate()" class="w-full bg-cyan-600 py-3 rounded-lg font-bold text-black terminal-text">RESGATAR</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO FIREBASE (ESPELHADA DO RASTREIO)
         const firebaseConfig = { databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         
         const LOJA_ID = "DONY_BURGER45";
+        const urlParams = new URLSearchParams(window.location.search);
         const pedidoID = urlParams.get('pedido');
         
         const btnGirar = document.getElementById('btn-girar');
@@ -164,68 +95,60 @@
             { nome: "PIX", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779842647931_1001187967.jpg" }
         ];
 
-        let sorteio = null;
+        let sorteado = null;
 
-        // "NASCE SABENDO": Validação Imediata
+        // INICIALIZAÇÃO "NASCE SABENDO"
         window.onload = () => {
-            if (!pedidoID) {
-                statusDisplay.innerText = "ID NÃO DETECTADO";
-                statusDisplay.style.color = "#ef4444";
+            if(!pedidoID) {
+                statusDisplay.innerText = "ERRO: ID AUSENTE";
                 return;
             }
-            validarID();
+            validarSessao();
         };
 
-        async function validarID() {
-            try {
-                // CONSULTA O CAMINHO EXATO DO RASTREIO JDP
-                const snap = await db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${pedidoID}`).once('value');
+        function validarSessao() {
+            db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${pedidoID}`).once('value', snap => {
                 const data = snap.val();
-
-                if (!snap.exists()) {
-                    statusDisplay.innerText = "ID INVÁLIDO NO BANCO";
-                    statusDisplay.style.color = "#ef4444";
-                } else if (data.giro_usado === true) {
-                    statusDisplay.innerText = "GIRO JÁ UTILIZADO";
-                    statusDisplay.style.color = "#ef4444";
-                    btnGirar.disabled = true;
-                } else {
-                    statusDisplay.innerText = "ACESSO AUTORIZADO";
-                    statusDisplay.style.color = "#22c55e";
+                if(!data) {
+                    statusDisplay.innerText = "ID NÃO LOCALIZADO";
+                } else if(data.giro_usado) {
+                    statusDisplay.innerText = "ACESSO NEGADO: JÁ UTILIZADO";
+                } else if(data.giro_autorizado) {
+                    statusDisplay.innerText = "SISTEMA LIBERADO";
+                    statusDisplay.className = "text-[10px] mt-2 uppercase tracking-widest text-green-500";
                     btnGirar.disabled = false;
+                } else {
+                    statusDisplay.innerText = "AGUARDANDO PAGAMENTO...";
                 }
-            } catch (e) {
-                statusDisplay.innerText = "ERRO DE CONEXÃO";
-            }
+            });
         }
 
-        function processarSorteio() {
+        function iniciarGiro() {
             btnGirar.disabled = true;
-            statusDisplay.innerText = "SORTEANDO...";
-            
-            const index = Math.floor(Math.random() * 6);
-            sorteio = premios[index];
+            // Trava imediata no servidor para evitar F5
+            db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${pedidoID}`).update({ giro_usado: true });
 
-            const rotation = (360 * 8) + (index * 60);
+            const index = Math.floor(Math.random() * 6);
+            sorteado = premios[index];
+
+            const rotation = (360 * 10) + (index * 60);
             document.getElementById('roleta').style.transform = `rotate(${rotation}deg)`;
 
             setTimeout(() => {
-                document.getElementById('img-premio').src = sorteio.img;
-                document.getElementById('prize-name').innerText = sorteio.nome;
+                document.getElementById('img-premio').src = sorteado.img;
+                document.getElementById('prize-name').innerText = sorteado.nome;
                 document.getElementById('modal-result').style.display = 'flex';
             }, 4100);
         }
 
-        async function resgatar() {
-            // GRAVAÇÃO DE IMUTABILIDADE NO CAMINHO DO RASTREIO
-            await db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${pedidoID}`).update({
-                giro_usado: true,
-                premio_roleta: sorteio.nome,
-                data_giro: firebase.database.ServerValue.TIMESTAMP
+        function confirmarResgate() {
+            db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${pedidoID}`).update({
+                premio_ganho: sorteado.nome,
+                data_premio: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                alert("Prêmio registrado! Mostre esta tela ao atendente.");
+                location.reload();
             });
-            
-            alert("Resgate processado! O sistema será bloqueado para este ID.");
-            window.location.reload();
         }
     </script>
 </body>
