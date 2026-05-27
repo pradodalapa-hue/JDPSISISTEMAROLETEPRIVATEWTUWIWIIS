@@ -1,155 +1,110 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HELENA Core - Roleta Industrial JDP</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>JDP | MONITORAMENTO SUPREME</title>
 
+    <!-- Firebase e Leaflet -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        :root { --cyan: #06b6d4; --gold: #fde047; --slate: #020617; }
-        body { background: var(--slate); color: white; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; }
-        .terminal-text { font-family: 'Orbitron', sans-serif; text-shadow: 0 0 10px var(--cyan); }
+        body, html { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; font-family: sans-serif; }
+        #map { width: 100%; height: 100%; transition: all 1s ease; filter: invert(90%) hue-rotate(180deg); }
         
-        .main-engine {
-            background: radial-gradient(circle at center, rgba(6,182,212,0.1) 0%, transparent 70%),
-                        url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779792501564_1778967155044.png');
-            background-size: cover; background-position: center; height: 100vh;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        #tv-midia { 
+            position: absolute; bottom: 20px; right: 20px; width: 300px; height: 200px; 
+            background: #000; border: 3px solid #f59e0b; border-radius: 10px; z-index: 1000;
+            display: flex; align-items: center; justify-content: center; overflow: hidden; transition: all 0.5s;
         }
-
-        .wheel-container {
-            position: relative; width: 340px; height: 340px;
-            border: 8px solid #1e293b; border-radius: 50%;
-            box-shadow: 0 0 50px rgba(6, 182, 212, 0.3);
+        #tv-midia .midia-content { width: 100%; height: 100%; object-fit: cover; }
+        
+        #btn-logo {
+            position: absolute; bottom: 30px; left: 30px; width: 80px; height: 80px;
+            z-index: 2000; cursor: pointer; border-radius: 50%; border: 3px solid #f59e0b;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); transition: 0.3s;
         }
-
-        .wheel-spinner {
-            width: 100%; height: 100%; border-radius: 50%;
-            background-image: url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779787837676_1001186385.png');
-            background-size: cover; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1);
-        }
-
-        .center-button {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 80px; height: 80px; background: #000; border: 4px solid var(--gold);
-            border-radius: 50%; z-index: 30; cursor: pointer; color: var(--gold); font-weight: bold;
-        }
-
-        .center-button:disabled { opacity: 0.3; filter: grayscale(1); cursor: not-allowed; }
-
-        #modal-result {
-            display: none; position: fixed; inset: 0; z-index: 50;
-            backdrop-filter: blur(15px); background: rgba(2,6,23,0.9);
-            align-items: center; justify-content: center;
-        }
+        
+        .modo-tv #map { height: 0%; opacity: 0; }
+        .modo-tv #tv-midia { width: 100%; height: 100%; bottom: 0; right: 0; border: none; border-radius: 0; }
     </style>
 </head>
 <body>
 
-    <div class="main-engine">
-        <div class="absolute top-10 text-center">
-            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789267039_1001186393.png" class="w-32 mx-auto mb-2">
-            <h1 class="terminal-text text-cyan-400 text-[10px] tracking-[0.4em]">HELENA CORE v3.5</h1>
-            <p id="status-display" class="text-[10px] mt-2 uppercase tracking-widest text-yellow-500">Autenticando...</p>
-        </div>
-
-        <div class="wheel-container">
-            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789433798_Engenheiro_Transparente__6_.png" class="absolute top-[-20px] left-1/2 -translate-x-1/2 w-16 z-20">
-            <div id="roleta" class="wheel-spinner"></div>
-            <button id="btn-girar" onclick="iniciarGiro()" class="center-button terminal-text text-[10px]" disabled>GIRAR</button>
-        </div>
-    </div>
-
-    <div id="modal-result">
-        <div class="bg-slate-900 border-2 border-cyan-500 p-8 rounded-3xl text-center max-w-xs">
-            <h2 class="terminal-text text-yellow-400 text-xl mb-4">SISTEMA: GANHOU!</h2>
-            <img id="img-premio" src="" class="w-40 h-40 mx-auto mb-4 rounded-xl border border-cyan-800">
-            <p id="prize-name" class="text-cyan-400 font-bold text-lg mb-6 uppercase">---</p>
-            <button onclick="confirmarResgate()" class="w-full bg-cyan-600 py-3 rounded-lg font-bold text-black terminal-text">RESGATAR</button>
-        </div>
-    </div>
+    <div id="map"></div>
+    <div id="tv-midia"><div id="display-area"></div></div>
+    
+    <a href="https://pradodalapa-hue.github.io/JDPSISISTEMAROLETEPRIVATEWTUWIWIIS/" target="_blank">
+        <img id="btn-logo" src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779773266613_1776103725063.png" alt="Cardápio">
+    </a>
 
     <script>
-        const firebaseConfig = { databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" };
-        firebase.initializeApp(firebaseConfig);
+        // --- INICIALIZAÇÃO ---
+        firebase.initializeApp({databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com"});
         const db = firebase.database();
+        const LOJA_ID = 'DONY_BURGER45';
         
-        const LOJA_ID = "DONY_BURGER45";
-        const urlParams = new URLSearchParams(window.location.search);
-        const pedidoID = urlParams.get('pedido');
-        
-        const btnGirar = document.getElementById('btn-girar');
-        const statusDisplay = document.getElementById('status-display');
+        const map = L.map('map').setView([-2.9903, -60.0673], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        const premios = [
-            { nome: "X-SALADA", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843123607_1779137773417.png" },
-            { nome: "KIKÃO", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843187147_1779137704141.png" },
-            { nome: "10% OFF", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png" },
-            { nome: "X-TUDO", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png" },
-            { nome: "X-BACON", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png" },
-            { nome: "PIX", img: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779842647931_1001187967.jpg" }
-        ];
+        let markerMotoboy, markerDestino;
+        let adsCache = ["https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1776919033775_Engenheiro_Transparente__1_.png"];
+        let adIndex = 0;
 
-        let sorteado = null;
+        // --- MOTOR DE PUBLICIDADE PRADO_67 ---
+        function motorPublicidade() {
+            db.ref(`publicidade/prado_67`).on('value', snap => {
+                if(snap.exists()){ adsCache = Object.values(snap.val()); }
+            });
 
-        // INICIALIZAÇÃO "NASCE SABENDO"
-        window.onload = () => {
-            if(!pedidoID) {
-                statusDisplay.innerText = "ERRO: ID AUSENTE";
-                return;
-            }
-            validarSessao();
-        };
-
-        function validarSessao() {
-            db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${pedidoID}`).once('value', snap => {
-                const data = snap.val();
-                if(!data) {
-                    statusDisplay.innerText = "ID NÃO LOCALIZADO";
-                } else if(data.giro_usado) {
-                    statusDisplay.innerText = "ACESSO NEGADO: JÁ UTILIZADO";
-                } else if(data.giro_autorizado) {
-                    statusDisplay.innerText = "SISTEMA LIBERADO";
-                    statusDisplay.className = "text-[10px] mt-2 uppercase tracking-widest text-green-500";
-                    btnGirar.disabled = false;
-                } else {
-                    statusDisplay.innerText = "AGUARDANDO PAGAMENTO...";
+            setInterval(() => {
+                const displayArea = document.getElementById('display-area');
+                if (adsCache.length > 0) {
+                    adIndex = (adIndex + 1) % adsCache.length;
+                    const url = adsCache[adIndex];
+                    
+                    displayArea.style.opacity = 0;
+                    setTimeout(() => {
+                        displayArea.innerHTML = url.match(/\.(mp4|webm|ogg)$/i) ? 
+                            `<video class="midia-content" autoplay muted loop src="${url}"></video>` : 
+                            `<img class="midia-content" src="${url}">`;
+                        displayArea.style.opacity = 1;
+                    }, 800);
                 }
-            });
+            }, 10000);
         }
 
-        function iniciarGiro() {
-            btnGirar.disabled = true;
-            // Trava imediata no servidor para evitar F5
-            db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${pedidoID}`).update({ giro_usado: true });
+        // --- LÓGICA DE RASTREIO ---
+        db.ref(`lojas/${LOJA_ID}/motoboy_status`).on('value', snap => {
+            const pos = snap.val();
+            document.body.classList.toggle('modo-tv', !(pos && pos.online));
+            
+            if (pos && pos.online) {
+                if (!markerMotoboy) {
+                    markerMotoboy = L.marker([pos.latitude, pos.longitude], {
+                        icon: L.divIcon({ html: '<div style="font-size:24px;">🛵</div>' })
+                    }).addTo(map);
+                } else {
+                    markerMotoboy.setLatLng([pos.latitude, pos.longitude]);
+                }
+                map.panTo([pos.latitude, pos.longitude]);
+            }
+        });
 
-            const index = Math.floor(Math.random() * 6);
-            sorteado = premios[index];
+        db.ref(`lojas/${LOJA_ID}/pedido_em_entrega`).on('value', snap => {
+            const pedido = snap.val();
+            if (pedido && pedido.latDestino) {
+                if (!markerDestino) {
+                    markerDestino = L.marker([pedido.latDestino, pedido.lngDestino], {
+                        icon: L.divIcon({ html: '<div style="font-size:24px;">📍</div>' })
+                    }).addTo(map).bindPopup("DESTINO DO SEU PEDIDO").openPopup();
+                }
+            }
+        });
 
-            const rotation = (360 * 10) + (index * 60);
-            document.getElementById('roleta').style.transform = `rotate(${rotation}deg)`;
-
-            setTimeout(() => {
-                document.getElementById('img-premio').src = sorteado.img;
-                document.getElementById('prize-name').innerText = sorteado.nome;
-                document.getElementById('modal-result').style.display = 'flex';
-            }, 4100);
-        }
-
-        function confirmarResgate() {
-            db.ref(`lojas/${LOJA_ID}/rastreio_ativo/${pedidoID}`).update({
-                premio_ganho: sorteado.nome,
-                data_premio: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                alert("Prêmio registrado! Mostre esta tela ao atendente.");
-                location.reload();
-            });
-        }
+        // Inicializa motor
+        motorPublicidade();
     </script>
 </body>
 </html>
