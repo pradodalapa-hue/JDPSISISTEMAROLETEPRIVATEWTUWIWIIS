@@ -3,142 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HELENA Core - Roleta de Elite JDP</title>
-    <!-- Firebase SDK Compat -->
+    <title>HELENA Core - Engenharia de Elite JDP</title>
+    
+    <!-- SDKs de Conexão -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+
     <style>
-        :root { --blue-tech: #06b6d4; --gold: #fde047; --slate-dark: #020617; }
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Roboto', sans-serif; background: #000; }
-        .container { background-image: url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779792501564_1778967155044.png'); background-position: center; background-size: cover; height: 100vh; width: 100vw; display: flex; flex-direction: column; align-items: center; position: relative; }
-        .wheel-logo-bonus__logo { width: 150px; margin-top: 20px; z-index: 5; }
-        .wheel { position: relative; margin-top: 50px; width: 332px; height: 332px; background-image: url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779788027075_Engenheiro_Transparente__4_.png'); background-size: contain; display: flex; justify-content: center; align-items: center; box-shadow: 0 0 50px rgba(241, 255, 51, 0.4); border-radius: 50%; }
-        .wheel__spinner { width: 275px; height: 275px; position: relative; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); will-change: transform; }
-        .wheel__inside { width: 100%; height: 100%; background-image: url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779787837676_1001186385.png'); background-size: cover; border-radius: 50%; }
-        .wheel__pointer { position: absolute; top: -20px; width: 60px; z-index: 10; }
-        .wheel__button { position: absolute; width: 80px; height: 80px; background-color: #000; border: 4px solid var(--gold); border-radius: 50%; cursor: pointer; z-index: 11; display: flex; justify-content: center; align-items: center; color: var(--gold); font-weight: bold; }
-        .popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(8px); }
-        .popup-content { width: 320px; height: 450px; background-size: contain; background-repeat: no-repeat; background-position: top center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-top: 120px; padding-bottom: 40px; text-align: center; }
-        .popup-success { background-image: url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779787455499_Engenheiro_Transparente__1_.png'); }
-        .btn-popup { background: linear-gradient(180deg, #ffe600, #ffb800); border: none; padding: 12px 30px; border-radius: 50px; font-weight: bold; color: #000; cursor: pointer; text-transform: uppercase; }
-        .img-premio { width: 220px; margin-bottom: auto; margin-top: 10px; border-radius: 15px; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); z-index: 101; }
+        :root {
+            --cyan: #06b6d4;
+            --gold: #fde047;
+            --slate-950: #020617;
+        }
+
+        body {
+            background-color: var(--slate-950);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .terminal-text {
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 10px var(--cyan);
+        }
+
+        /* Container Principal com Background Industrial */
+        .main-engine {
+            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.15) 0%, transparent 70%),
+                        url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779792501564_1778967155044.png');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Estilização da Roleta */
+        .wheel-container {
+            position: relative;
+            width: 350px;
+            height: 350px;
+            border: 8px solid #1e293b;
+            border-radius: 50%;
+            box-shadow: 0 0 50px rgba(6, 182, 212, 0.3), inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .wheel-spinner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-image: url('https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779787837676_1001186385.png');
+            background-size: cover;
+            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            filter: drop-shadow(0 0 5px var(--cyan));
+        }
+
+        .center-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: var(--slate-950);
+            border: 4px solid var(--gold);
+            border-radius: 50%;
+            z-index: 30;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--gold);
+            transition: all 0.3s;
+        }
+
+        .center-button:hover {
+            box-shadow: 0 0 20px var(--gold);
+            scale: 1.05;
+        }
+
+        .center-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        /* Modal de Sucesso */
+        #modal-result {
+            display: none;
+            backdrop-filter: blur(10px);
+            background: rgba(2, 6, 23, 0.9);
+        }
+
+        .prize-card {
+            background: linear-gradient(145deg, #0f172a, #020617);
+            border: 2px solid var(--cyan);
+            box-shadow: 0 0 30px var(--cyan);
+        }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: var(--cyan);
+            position: absolute;
+            top: 0;
+            animation: scan 2s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789267039_1001186393.png" class="wheel-logo-bonus__logo">
-        <div class="wheel">
-            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789433798_Engenheiro_Transparente__6_.png" class="wheel__pointer">
-            <div class="wheel__spinner" id="roleta">
-                <div class="wheel__inside"></div>
-            </div>
-            <button class="wheel__button" id="btn-girar" onclick="girar()">GIRAR</button>
+
+    <div class="main-engine">
+        <!-- Header Técnico -->
+        <div class="absolute top-10 text-center">
+            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789267039_1001186393.png" class="w-40 mx-auto mb-2">
+            <h1 class="terminal-text text-cyan-400 text-sm tracking-widest">SISTEMA HELENA CORE v2.0</h1>
+            <p id="status-display" class="text-xs text-slate-400 mt-1">AGUARDANDO AUTENTICAÇÃO...</p>
+        </div>
+
+        <!-- Roleta Principal -->
+        <div class="wheel-container">
+            <img src="https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779789433798_Engenheiro_Transparente__6_.png" class="pointer w-16">
+            <div id="roleta" class="wheel-spinner"></div>
+            <button id="btn-girar" onclick="processarGiro()" class="center-button terminal-text text-xs">GIRAR</button>
+        </div>
+
+        <!-- Barra de Status Inferior -->
+        <div class="absolute bottom-5 w-full px-10 flex justify-between text-[10px] text-cyan-700 uppercase terminal-text">
+            <span>Server: DONY_BURGER_DB</span>
+            <span>Security: JDP_ENCRYPT_ACTIVE</span>
+            <span>Auth: SR. JOSÉ DIVINO</span>
         </div>
     </div>
 
-    <div class="popup" id="modal-sucesso">
-        <div class="popup-content popup-success">
-            <img id="img-premio-dinamica" src="" class="img-premio">
-            <button class="btn-popup" id="btn-resgatar">RESGATAR PRÊMIO</button>
+    <!-- Modal de Resultado -->
+    <div id="modal-result" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="prize-card relative w-full max-w-sm rounded-2xl p-8 text-center overflow-hidden">
+            <div class="scanline"></div>
+            <h2 class="terminal-text text-gold-400 text-2xl mb-4 text-[#fde047]">PRÊMIO IDENTIFICADO!</h2>
+            <div id="prize-container" class="mb-6 flex justify-center">
+                <img id="img-premio" src="" class="w-48 h-48 object-cover rounded-xl border-2 border-cyan-500/30">
+            </div>
+            <p id="prize-name" class="text-cyan-400 font-bold text-xl mb-6 tracking-tighter">---</p>
+            <button onclick="resgatarPremio()" class="w-full bg-cyan-600 hover:bg-cyan-400 text-slate-950 font-black py-3 rounded-lg transition-all terminal-text">
+                CONFIRMAR RESGATE
+            </button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO DO CRIADOR JOSÉ DIVINO
-        const firebaseConfig = { 
-            apiKey: "AIzaSyCEdXF7ScnMYz0Ce0OW-B_UJ8Bm5Pl9m8o", 
-            databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com" 
+        // CONFIGURAÇÕES DE ENGENHARIA JDP
+        const firebaseConfig = {
+            apiKey: "AIzaSyCEdXF7ScnMYz0Ce0OW-B_UJ8Bm5Pl9m8o",
+            databaseURL: "https://dony-burguers-default-rtdb.firebaseio.com"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        
         const LOJA_ID = "DONY_BURGER45";
-// Captura o ID da URL
-const urlParams = new URLSearchParams(window.location.search);
-const pedidoID = urlParams.get('pedido'); 
+        const urlParams = new URLSearchParams(window.location.search);
+        const pedidoID = urlParams.get('pedido');
 
-function validarAcessoAoGiro() {
-    if (!pedidoID) {
-        alert("ID de pedido inválido!");
-        return;
-    }
-    
-    // Verifica se o pedido existe e se já girou
-    db.ref('pedidos/' + pedidoID).once('value', snap => {
-        const pedido = snap.val();
-        if (!pedido) {
-            alert("Pedido não encontrado no sistema JDP.");
-        } else if (pedido.giro_usado === true) {
-            alert("Este pedido já foi utilizado para um giro!");
-            btnGirar.disabled = true;
-        } else {
-            console.log("Acesso autorizado para o pedido: " + pedidoID);
-        }
-    });
-}
-
-        // Mapeamento estático dos prêmios (deve seguir a ordem do cardápio no Firebase)
+        // MAPEAMENTO DOS SETORES (360 graus / 6 prêmios = 60 graus cada)
         const premios = [
-            { nome: "x salada", premio: "x salada", comemoracao: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843123607_1779137773417.png", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843123607_1779137773417.png" },
-            { nome: "kikao", premio: "kikao", comemoracao: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843187147_1779137704141.png", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843187147_1779137704141.png" },
-            { nome: "10%", premio: "10%", comemoracao: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png" },
-            { nome: "xtudo", premio: "xtudo", comemoracao: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png" },
-            { nome: "x bacon", premio: "x bacon", comemoracao: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png" },
-            { nome: "pix", premio: "pix", comemoracao: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779842647931_1001187967.jpg", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779842647931_1001187967.jpg" }
+            { id: 0, nome: "X-SALADA", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843123607_1779137773417.png", link: "x-salada" },
+            { id: 1, nome: "KIKÃO ESPECIAL", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779843187147_1779137704141.png", link: "kikao" },
+            { id: 2, nome: "CUPOM 10% OFF", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png", link: "10-off" },
+            { id: 3, nome: "X-TUDO MONSTRO", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png", link: "xtudo" },
+            { id: 4, nome: "X-BACON TURBO", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779797977377_1776103725063.png", link: "xbacon" },
+            { id: 5, nome: "PIX", imagem: "https://raw.githubusercontent.com/pradodalapa-hue/fotos-industrial/main/img/jdp_1779842647931_1001187967.jpg", link: "pix" }
         ];
 
-        let ultimoIndice = 0;
-        const roleta = document.getElementById('roleta');
+        let sorteioAtual = null;
         const btnGirar = document.getElementById('btn-girar');
+        const statusDisplay = document.getElementById('status-display');
 
-        function girar() {
-            btnGirar.disabled = true;
-            const sorteio = Math.floor(Math.random() * 6);
+        // Inicialização do Sistema
+        window.onload = () => {
+            if(!pedidoID) {
+                statusDisplay.innerText = "ERRO: ID DE PEDIDO AUSENTE";
+                btnGirar.disabled = true;
+                return;
+            }
+            validarPedido();
+        };
 
-            // MOTOR: Verifica estoque no Firebase antes de girar
-            db.ref('lojas/' + LOJA_ID + '/cardapio').once('value', snap => {
-                const itens = snap.val();
-                if (!itens) return;
-                const nomes = Object.keys(itens);
-                const itemSorteado = itens[nomes[sorteio]];
-
-                if (itemSorteado.estoque <= 0) {
-                    alert("Produto " + premios[sorteio].nome + " esgotado! Tente novamente.");
-                    btnGirar.disabled = false;
+        function validarPedido() {
+            db.ref('pedidos/' + pedidoID).once('value', snap => {
+                const data = snap.val();
+                if(!data) {
+                    statusDisplay.innerText = "ACESSO NEGADO: PEDIDO INEXISTENTE";
+                    btnGirar.disabled = true;
+                } else if(data.giro_usado) {
+                    statusDisplay.innerText = "ACESSO NEGADO: GIRO JÁ UTILIZADO";
+                    btnGirar.disabled = true;
                 } else {
-                    ultimoIndice = sorteio;
-                    const angulo = (sorteio * 60) + 1800; 
-                    roleta.style.transform = `rotate(${angulo}deg)`;
-
-                    setTimeout(() => {
-                        if (navigator.vibrate) navigator.vibrate(500);
-                        document.getElementById('img-premio-dinamica').src = premios[sorteio].imagem;
-                        document.getElementById('modal-sucesso').style.display = 'flex';
-                        btnGirar.disabled = false;
-                    }, 4000);
+                    statusDisplay.innerText = "SISTEMA PRONTO: " + pedidoID;
+                    statusDisplay.classList.add('text-green-500');
                 }
             });
         }
 
-        document.getElementById('btn-resgatar').onclick = function() {
-            const p = premios[ultimoIndice];
+        function processarGiro() {
+            btnGirar.disabled = true;
+            statusDisplay.innerText = "PROCESSANDO SORTEIO...";
 
-            // MOTOR: Baixa no estoque e redirecionamento
-            db.ref('lojas/' + LOJA_ID + '/cardapio').once('value', snap => {
-                const nomes = Object.keys(snap.val());
-                const idItem = nomes[ultimoIndice];
+            // Sorteia o índice (0 a 5)
+            const indiceSorteado = Math.floor(Math.random() * 6);
+            sorteioAtual = premios[indiceSorteado];
 
-                // Executa a transação de débito no Firebase
-                db.ref('lojas/' + LOJA_ID + '/cardapio/' + idItem + '/estoque')
-                  .transaction(c => (c > 0 ? c - 1 : 0))
-                  .then(() => {
-                      // Após o débito, abre a comemoração e redireciona para o prêmio
-                      window.open(p.comemoracao, '_blank');
-                      window.location.href = p.premio;
-                  });
+            // Cálculo de Rotação (Mínimo 5 voltas completas + ângulo do prêmio)
+            // Cada fatia tem 60 graus. O centro da fatia 0 está em 0 graus.
+            const voltas = 5 * 360;
+            const anguloFatia = indiceSorteado * 60;
+            const rotacaoTotal = voltas + anguloFatia;
+
+            const roletaElement = document.getElementById('roleta');
+            roletaElement.style.transform = `rotate(${rotacaoTotal}deg)`;
+
+            setTimeout(() => {
+                finalizarGiro();
+            }, 4100);
+        }
+
+        function finalizarGiro() {
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            
+            document.getElementById('img-premio').src = sorteioAtual.imagem;
+            document.getElementById('prize-name').innerText = sorteioAtual.nome;
+            document.getElementById('modal-result').style.display = 'flex';
+            statusDisplay.innerText = "SORTEIO CONCLUÍDO";
+        }
+
+        function resgatarPremio() {
+            // HELENA Logic: Transação de Segurança no Firebase
+            const updates = {};
+            updates['/pedidos/' + pedidoID + '/giro_usado'] = true;
+            updates['/pedidos/' + pedidoID + '/premio_ganho'] = sorteioAtual.nome;
+            updates['/pedidos/' + pedidoID + '/data_giro'] = new Date().toISOString();
+
+            db.ref().update(updates).then(() => {
+                statusDisplay.innerText = "RESGATE CONFIRMADO. REDIRECIONANDO...";
+                setTimeout(() => {
+                    // Redireciona para o link do prêmio ou comemoração
+                    window.location.href = sorteioAtual.link;
+                }, 1500);
+            }).catch(err => {
+                console.error("Erro HELENA Core:", err);
+                alert("Falha crítica na comunicação com o servidor.");
             });
-        };
+        }
     </script>
 </body>
 </html>
