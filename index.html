@@ -4,7 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HELENA Core - Roleta Industrial JDP</title>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const pedido = urlParams.get('pedido');
 
+    // Verifica se o pedido existe e se começa com "JDP-"
+    if (!pedido || !pedido.startsWith('JDP-')) {
+        document.write(`
+            <style>
+                body { margin: 0; padding: 0; overflow: hidden; background: #000; }
+                .tela-bloqueio { 
+                    width: 100vw; 
+                    height: 100vh; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                }
+                .tela-bloqueio img { 
+                    max-width: 100%; 
+                    max-height: 100%; 
+                    object-fit: contain; 
+                }
+            </style>
+            <div class="tela-bloqueio">
+                <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Acesso Negado">
+            </div>
+        `);
+        window.stop();
+    }
+</script>
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
